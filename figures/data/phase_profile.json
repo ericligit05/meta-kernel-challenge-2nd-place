@@ -1,0 +1,2075 @@
+{
+ "about": "Kernel time per phase for each scored shape, one call per shape. Ours: the official kernel profile of the submitted code (one eager call per shape, taken with the 2.13x official run; the profile lists the largest kernels by name and the rest only as a count, which is filed under other). SGLang: a per-kernel profile of the reference on the same shapes and routing (mean of 6 profiled calls). Times in us. A PDL dependent or a side-stream kernel includes its wait, so a shape's kernels sum to more than its GPU busy time.",
+ "phase_rule": {
+  "routed experts": "the expert GEMMs and their activation (SGLang: two Marlin MoE GEMMs and act_and_mul; ours: one fused expert kernel)",
+  "attention": "QK-norm, RoPE, KV-cache write and FP8 casts, the attention kernels, split combine and output norm-gate",
+  "dense GEMMs": "every cuBLAS, CUTLASS or QuACK GEMM (qkv, o, pooler, router, unpooler) and split-K reduces",
+  "other": "everything else: layer-boundary norms and residuals, routing, token order, the weighted sum, casts and copies"
+ },
+ "cases": [
+  {
+   "case": {
+    "load": "turn 1",
+    "weight": 46,
+    "batch": 1,
+    "ctx": 80000,
+    "layer": "sliding",
+    "q_len": 753
+   },
+   "ours": {
+    "kernel_sum_us": 526.0,
+    "gpu_busy_us": 503.0,
+    "kernels": [
+     {
+      "kernel": "(anonymous namespace)::moe_mixed(unsigned char const*, un...",
+      "us": 239.5,
+      "calls": 1,
+      "phase": "routed experts"
+     },
+     {
+      "kernel": "nvjet_sm90_tss_144x192_64x5_2x1_v_bz_coopB_TNN",
+      "us": 76.3,
+      "calls": 1,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "kernel_cutlass_kernel_submissionPdlGemmSm90Ef_object_at__...",
+      "us": 67.1,
+      "calls": 1,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "nvjet_sm90_tst_112x128_64x7_1x2_h_bz_TNN",
+      "us": 39.5,
+      "calls": 1,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "kernel_cutlass_kernel_quackgemm_default_epiGemmDefaultSm9...",
+      "us": 23.6,
+      "calls": 1,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "(anonymous namespace)::wsum3_k(__nv_bfloat16 const*, floa...",
+      "us": 18.6,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void (anonymous namespace)::nr2_k<false, false, false>(__...",
+      "us": 17.7,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void (anonymous namespace)::nr2_k<true, true, false>(__nv...",
+      "us": 17.5,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "sl_attn_k(CUtensorMap_st, CUtensorMap_st, CUtensorMap_st,...",
+      "us": 12.1,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void (anonymous namespace)::rng3y_k<1>(float const*, int,...",
+      "us": 8.8,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void (anonymous namespace)::frontg_k<false>(__nv_bfloat16...",
+      "us": 5.3,
+      "calls": 1,
+      "phase": "attention"
+     }
+    ],
+    "phases_us": {
+     "routed experts": 239.5,
+     "attention": 17.4,
+     "dense GEMMs": 206.5,
+     "other": 62.6
+    }
+   },
+   "sglang": {
+    "kernel_sum_us": 1096.34,
+    "kernels": [
+     {
+      "kernel": "void sglang::device::marlin_moe::Marlin<__nv_bfloat16, 562949953487106",
+      "us": 676.11,
+      "calls": 2,
+      "phase": "routed experts"
+     },
+     {
+      "kernel": "nvjet_sm90_tst_128x192_64x5_2x1_v_bz_coopB_TNN",
+      "us": 149.87,
+      "calls": 3,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "nvjet_sm90_tss_64x96_64x10_2x1_v_bz_splitK_NNT",
+      "us": 82.52,
+      "calls": 2,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "nvjet_sm90_tst_112x128_64x7_1x2_h_bz_TNN",
+      "us": 39.0,
+      "calls": 1,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "void cutlass::device_kernel<flash::enable_sm90_or_later<flash::FlashAt",
+      "us": 26.96,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void sglang::muse_spark_norm_residual_kernel<8192l, 512, true, false, ",
+      "us": 21.82,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void sglang::muse_spark_norm_residual_kernel<8192l, 512, true, false, ",
+      "us": 21.72,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void sglang::act_and_mul_kernel<__nv_bfloat16, (sglang::ActivationKind",
+      "us": 14.33,
+      "calls": 1,
+      "phase": "routed experts"
+     },
+     {
+      "kernel": "_post_expert_norm_weighted_sum_kernel",
+      "us": 8.22,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void at::native::(anonymous namespace)::vectorized_layer_norm_kernel<c",
+      "us": 6.53,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void cutlass::device_kernel<flash::FlashAttnFwdCombine<cute::tuple<cut",
+      "us": 6.35,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void count_and_sort_expert_tokens_kernel<int>(int const*, int*, int*, ",
+      "us": 5.13,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void cublasLt::splitKreduce_kernel<32, 16, int, float, float, float, f",
+      "us": 4.61,
+      "calls": 2,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "void moe_align_block_size_kernel<int>(int const*, int*, int*, int*, in",
+      "us": 3.83,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "_qk_rms_norm_fwd_kernel",
+      "us": 3.51,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void sglang::muse_spark::routing_kernel<sglang::muse_spark::RoutingTra",
+      "us": 3.43,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void at::native::index_elementwise_kernel<128, 4, at::native::gpu_inde",
+      "us": 3.41,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void at::native::vectorized_elementwise_kernel<8, at::native::ConvertT",
+      "us": 2.74,
+      "calls": 2,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void flash::prepare_varlen_num_blocks_kernel<1, false>(int, int, int, ",
+      "us": 2.58,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void at::native::elementwise_kernel<128, 4, at::native::gpu_kernel_imp",
+      "us": 2.38,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void at::native::unrolled_elementwise_kernel<at::native::direct_copy_k",
+      "us": 2.33,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void at::native::vectorized_elementwise_kernel<4, at::native::BUnaryFu",
+      "us": 2.21,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void sglang::norm_gate_kernel<__nv_bfloat16, 64l, 16, 4, true, false, ",
+      "us": 2.1,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void at::native::elementwise_kernel<128, 2, at::native::gpu_kernel_imp",
+      "us": 1.69,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void sglang::store_kvcache_kernel<128l, 128l, 32u, true, long>(sglang:",
+      "us": 1.5,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void at::native::vectorized_elementwise_kernel<4, at::native::CUDAFunc",
+      "us": 1.47,
+      "calls": 1,
+      "phase": "other"
+     }
+    ],
+    "phases_us": {
+     "routed experts": 690.4,
+     "attention": 48.1,
+     "dense GEMMs": 276.0,
+     "other": 81.8
+    }
+   }
+  },
+  {
+   "case": {
+    "load": "turn 1",
+    "weight": 16,
+    "batch": 1,
+    "ctx": 80000,
+    "layer": "full",
+    "q_len": 753
+   },
+   "ours": {
+    "kernel_sum_us": 694.1,
+    "gpu_busy_us": 664.8,
+    "kernels": [
+     {
+      "kernel": "(anonymous namespace)::moe_mixed(unsigned char const*, un...",
+      "us": 247.2,
+      "calls": 1,
+      "phase": "routed experts"
+     },
+     {
+      "kernel": "void cutlass::device_kernel<flash::enable_sm90_or_later<f...",
+      "us": 157.2,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "nvjet_sm90_tss_144x192_64x5_2x1_v_bz_coopB_TNN",
+      "us": 72.9,
+      "calls": 1,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "kernel_cutlass_kernel_submissionPdlGemmSm90Ef_object_at__...",
+      "us": 68.0,
+      "calls": 1,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "nvjet_sm90_tst_112x128_64x7_1x2_h_bz_TNN",
+      "us": 40.3,
+      "calls": 1,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "(anonymous namespace)::wsum3_k(__nv_bfloat16 const*, floa...",
+      "us": 19.8,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "nvjet_sm90_tst_128x128_64x6_1x2_h_ssched_bz_TNT",
+      "us": 19.3,
+      "calls": 1,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "void (anonymous namespace)::nr2_k<false, false, false>(__...",
+      "us": 17.9,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void (anonymous namespace)::nr2_k<true, true, false>(__nv...",
+      "us": 17.0,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void pv_gather_stage_k<flash::CollectiveMainloopFwdSm90<2...",
+      "us": 12.1,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void (anonymous namespace)::rng3y_k<1>(float const*, int,...",
+      "us": 8.6,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void cutlass::device_kernel<flash::FlashAttnFwdCombine<cu...",
+      "us": 8.1,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "2 smaller kernels not listed by the profile",
+      "us": 5.7,
+      "calls": 2,
+      "phase": "other"
+     }
+    ],
+    "phases_us": {
+     "routed experts": 247.2,
+     "attention": 177.4,
+     "dense GEMMs": 200.5,
+     "other": 69.0
+    }
+   },
+   "sglang": {
+    "kernel_sum_us": 1513.93,
+    "kernels": [
+     {
+      "kernel": "void sglang::device::marlin_moe::Marlin<__nv_bfloat16, 562949953487106",
+      "us": 704.96,
+      "calls": 2,
+      "phase": "routed experts"
+     },
+     {
+      "kernel": "void cutlass::device_kernel<flash::enable_sm90_or_later<flash::FlashAt",
+      "us": 415.27,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "nvjet_sm90_tst_128x192_64x5_2x1_v_bz_coopB_TNN",
+      "us": 149.56,
+      "calls": 3,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "nvjet_sm90_tss_64x96_64x10_2x1_v_bz_splitK_NNT",
+      "us": 82.01,
+      "calls": 2,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "nvjet_sm90_tst_112x128_64x7_1x2_h_bz_TNN",
+      "us": 38.92,
+      "calls": 1,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "void sglang::muse_spark_norm_residual_kernel<8192l, 512, true, false, ",
+      "us": 21.72,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void sglang::muse_spark_norm_residual_kernel<8192l, 512, true, false, ",
+      "us": 21.65,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void sglang::act_and_mul_kernel<__nv_bfloat16, (sglang::ActivationKind",
+      "us": 14.3,
+      "calls": 1,
+      "phase": "routed experts"
+     },
+     {
+      "kernel": "_post_expert_norm_weighted_sum_kernel",
+      "us": 8.84,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void at::native::(anonymous namespace)::vectorized_layer_norm_kernel<c",
+      "us": 6.65,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void cutlass::device_kernel<flash::FlashAttnFwdCombine<cute::tuple<cut",
+      "us": 6.37,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void cublasLt::splitKreduce_kernel<32, 16, int, float, float, float, f",
+      "us": 4.98,
+      "calls": 2,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "void count_and_sort_expert_tokens_kernel<int>(int const*, int*, int*, ",
+      "us": 4.91,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void flash::prepare_varlen_num_blocks_kernel<1, true>(int, int, int, i",
+      "us": 3.72,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void moe_align_block_size_kernel<int>(int const*, int*, int*, int*, in",
+      "us": 3.65,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void sglang::muse_spark::routing_kernel<sglang::muse_spark::RoutingTra",
+      "us": 3.45,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void at::native::index_elementwise_kernel<128, 4, at::native::gpu_inde",
+      "us": 3.39,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "_qk_rms_norm_fwd_kernel",
+      "us": 2.75,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void at::native::vectorized_elementwise_kernel<8, at::native::ConvertT",
+      "us": 2.73,
+      "calls": 2,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void at::native::unrolled_elementwise_kernel<at::native::direct_copy_k",
+      "us": 2.47,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void at::native::elementwise_kernel<128, 4, at::native::gpu_kernel_imp",
+      "us": 2.31,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void at::native::vectorized_elementwise_kernel<4, at::native::BUnaryFu",
+      "us": 2.29,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void sglang::norm_gate_kernel<__nv_bfloat16, 64l, 16, 4, true, false, ",
+      "us": 2.26,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void at::native::elementwise_kernel<128, 2, at::native::gpu_kernel_imp",
+      "us": 1.63,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void sglang::store_kvcache_kernel<128l, 128l, 32u, true, long>(sglang:",
+      "us": 1.58,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void at::native::vectorized_elementwise_kernel<4, at::native::CUDAFunc",
+      "us": 1.55,
+      "calls": 1,
+      "phase": "other"
+     }
+    ],
+    "phases_us": {
+     "routed experts": 719.3,
+     "attention": 437.0,
+     "dense GEMMs": 275.5,
+     "other": 82.2
+    }
+   }
+  },
+  {
+   "case": {
+    "load": "turn 4",
+    "weight": 46,
+    "batch": 4,
+    "ctx": 80000,
+    "layer": "sliding",
+    "q_len": 753
+   },
+   "ours": {
+    "kernel_sum_us": 1797.6,
+    "gpu_busy_us": 1774.1,
+    "kernels": [
+     {
+      "kernel": "(anonymous namespace)::moe_mixed_mc(unsigned char const*,...",
+      "us": 771.7,
+      "calls": 1,
+      "phase": "routed experts"
+     },
+     {
+      "kernel": "nvjet_sm90_tst_256x128_64x4_1x2_h_ssched_bz_coopA_TNT",
+      "us": 249.0,
+      "calls": 1,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "nvjet_sm90_tst_128x304_64x3_2x1_v_ssched_bz_coopA_TNT",
+      "us": 243.8,
+      "calls": 1,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "nvjet_sm90_tst_256x104_64x4_1x1_v_bz_coopA_TNT",
+      "us": 143.8,
+      "calls": 1,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "void (anonymous namespace)::remat2_k<true>(float const*, ...",
+      "us": 88.1,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "kernel_cutlass_kernel_submissionPdlGemmSm90DynX12712_obje...",
+      "us": 67.7,
+      "calls": 1,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "void (anonymous namespace)::nr3_k<false>(float const*, __...",
+      "us": 53.2,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "(anonymous namespace)::wsum3_k(__nv_bfloat16 const*, floa...",
+      "us": 36.8,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "nvjet_sm90_tss_128x96_64x7_1x2_h_bz_TNT",
+      "us": 34.3,
+      "calls": 1,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "sl_attn_k(CUtensorMap_st, CUtensorMap_st, CUtensorMap_st,...",
+      "us": 32.8,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "(anonymous namespace)::order2_k(float const*, long, int, ...",
+      "us": 32.1,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "(anonymous namespace)::normgather_k(uint4 const*, float c...",
+      "us": 18.8,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "4 smaller kernels not listed by the profile",
+      "us": 25.5,
+      "calls": 4,
+      "phase": "other"
+     }
+    ],
+    "phases_us": {
+     "routed experts": 771.7,
+     "attention": 32.8,
+     "dense GEMMs": 738.6,
+     "other": 254.5
+    }
+   },
+   "sglang": {
+    "kernel_sum_us": 3359.89,
+    "kernels": [
+     {
+      "kernel": "void sglang::device::marlin_moe::Marlin<__nv_bfloat16, 562949953487106",
+      "us": 2123.23,
+      "calls": 2,
+      "phase": "routed experts"
+     },
+     {
+      "kernel": "nvjet_sm90_tst_256x152_64x4_1x2_h_bz_coopA_TNT",
+      "us": 320.05,
+      "calls": 2,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "nvjet_sm90_tst_128x256_64x4_2x1_v_bz_coopA_TNN",
+      "us": 269.85,
+      "calls": 1,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "nvjet_sm90_tst_192x144_64x5_1x2_h_bz_coopB_TNT",
+      "us": 143.13,
+      "calls": 1,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "nvjet_sm90_tss_64x104_64x10_4x2_h_bz_NNT",
+      "us": 123.3,
+      "calls": 2,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "void sglang::muse_spark_norm_residual_kernel<8192l, 512, true, false, ",
+      "us": 78.63,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void sglang::muse_spark_norm_residual_kernel<8192l, 512, true, false, ",
+      "us": 76.85,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void cutlass::device_kernel<flash::enable_sm90_or_later<flash::FlashAt",
+      "us": 60.84,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void sglang::act_and_mul_kernel<__nv_bfloat16, (sglang::ActivationKind",
+      "us": 53.26,
+      "calls": 1,
+      "phase": "routed experts"
+     },
+     {
+      "kernel": "_post_expert_norm_weighted_sum_kernel",
+      "us": 23.56,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void at::native::(anonymous namespace)::vectorized_layer_norm_kernel<c",
+      "us": 17.84,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void count_and_sort_expert_tokens_kernel<int>(int const*, int*, int*, ",
+      "us": 16.43,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "_qk_rms_norm_fwd_kernel",
+      "us": 10.51,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void moe_align_block_size_kernel<int>(int const*, int*, int*, int*, in",
+      "us": 7.01,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void sglang::norm_gate_kernel<__nv_bfloat16, 64l, 16, 4, true, false, ",
+      "us": 5.23,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void sglang::muse_spark::routing_kernel<sglang::muse_spark::RoutingTra",
+      "us": 5.16,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void at::native::vectorized_elementwise_kernel<8, at::native::ConvertT",
+      "us": 4.2,
+      "calls": 2,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void at::native::index_elementwise_kernel<128, 4, at::native::gpu_inde",
+      "us": 3.46,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void at::native::unrolled_elementwise_kernel<at::native::direct_copy_k",
+      "us": 3.41,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void at::native::elementwise_kernel<128, 4, at::native::gpu_kernel_imp",
+      "us": 3.3,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void at::native::vectorized_elementwise_kernel<4, at::native::CUDAFunc",
+      "us": 3.23,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void flash::prepare_varlen_num_blocks_kernel<1, false>(int, int, int, ",
+      "us": 2.06,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void at::native::vectorized_elementwise_kernel<4, at::native::BUnaryFu",
+      "us": 1.86,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void at::native::elementwise_kernel<128, 2, at::native::gpu_kernel_imp",
+      "us": 1.74,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void sglang::store_kvcache_kernel<128l, 128l, 32u, true, long>(sglang:",
+      "us": 1.74,
+      "calls": 1,
+      "phase": "attention"
+     }
+    ],
+    "phases_us": {
+     "routed experts": 2176.5,
+     "attention": 87.9,
+     "dense GEMMs": 856.3,
+     "other": 239.2
+    }
+   }
+  },
+  {
+   "case": {
+    "load": "turn 4",
+    "weight": 16,
+    "batch": 4,
+    "ctx": 80000,
+    "layer": "full",
+    "q_len": 753
+   },
+   "ours": {
+    "kernel_sum_us": 2486.3,
+    "gpu_busy_us": 2230.4,
+    "kernels": [
+     {
+      "kernel": "(anonymous namespace)::moe_mixed_mc(unsigned char const*,...",
+      "us": 671.1,
+      "calls": 1,
+      "phase": "routed experts"
+     },
+     {
+      "kernel": "void cutlass::device_kernel<flash::enable_sm90_or_later<f...",
+      "us": 587.8,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "nvjet_sm90_tst_128x304_64x3_2x1_v_ssched_bz_coopA_TNT",
+      "us": 244.4,
+      "calls": 1,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "nvjet_sm90_tst_256x128_64x4_1x2_h_ssched_bz_coopA_TNT",
+      "us": 241.7,
+      "calls": 1,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "(anonymous namespace)::route_k(float const*, float const*...",
+      "us": 210.6,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "nvjet_sm90_tst_256x104_64x4_1x1_v_bz_coopA_TNT",
+      "us": 144.3,
+      "calls": 1,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "void (anonymous namespace)::remat2_k<true>(float const*, ...",
+      "us": 87.7,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "nvjet_sm90_tst_176x128_64x5_1x2_h_ssched_bz_TNN",
+      "us": 63.8,
+      "calls": 1,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "void (anonymous namespace)::nr3_k<false>(float const*, __...",
+      "us": 52.1,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void z0_gp_k<2>(uint4 const*, uint4 const*, int const*, i...",
+      "us": 46.7,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "(anonymous namespace)::wsum3_k(__nv_bfloat16 const*, floa...",
+      "us": 38.8,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "nvjet_sm90_tss_128x96_64x7_1x2_h_bz_TNT",
+      "us": 34.4,
+      "calls": 1,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "5 smaller kernels not listed by the profile",
+      "us": 62.9,
+      "calls": 5,
+      "phase": "other"
+     }
+    ],
+    "phases_us": {
+     "routed experts": 671.1,
+     "attention": 634.5,
+     "dense GEMMs": 728.6,
+     "other": 452.1
+    }
+   },
+   "sglang": {
+    "kernel_sum_us": 4988.27,
+    "kernels": [
+     {
+      "kernel": "void sglang::device::marlin_moe::Marlin<__nv_bfloat16, 562949953487106",
+      "us": 2169.42,
+      "calls": 2,
+      "phase": "routed experts"
+     },
+     {
+      "kernel": "void cutlass::device_kernel<flash::enable_sm90_or_later<flash::FlashAt",
+      "us": 1627.77,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "nvjet_sm90_tst_256x152_64x4_1x2_h_bz_coopA_TNT",
+      "us": 320.83,
+      "calls": 2,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "nvjet_sm90_tst_128x256_64x4_2x1_v_bz_coopA_TNN",
+      "us": 272.0,
+      "calls": 1,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "nvjet_sm90_tst_192x144_64x5_1x2_h_bz_coopB_TNT",
+      "us": 143.46,
+      "calls": 1,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "nvjet_sm90_tss_64x104_64x10_4x2_h_bz_NNT",
+      "us": 134.71,
+      "calls": 2,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "void sglang::muse_spark_norm_residual_kernel<8192l, 512, true, false, ",
+      "us": 79.35,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void sglang::muse_spark_norm_residual_kernel<8192l, 512, true, false, ",
+      "us": 76.91,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void sglang::act_and_mul_kernel<__nv_bfloat16, (sglang::ActivationKind",
+      "us": 53.05,
+      "calls": 1,
+      "phase": "routed experts"
+     },
+     {
+      "kernel": "_post_expert_norm_weighted_sum_kernel",
+      "us": 24.12,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void at::native::(anonymous namespace)::vectorized_layer_norm_kernel<c",
+      "us": 18.14,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void count_and_sort_expert_tokens_kernel<int>(int const*, int*, int*, ",
+      "us": 16.72,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "_qk_rms_norm_fwd_kernel",
+      "us": 7.81,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void moe_align_block_size_kernel<int>(int const*, int*, int*, int*, in",
+      "us": 7.06,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void sglang::norm_gate_kernel<__nv_bfloat16, 64l, 16, 4, true, false, ",
+      "us": 5.61,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void sglang::muse_spark::routing_kernel<sglang::muse_spark::RoutingTra",
+      "us": 5.1,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void at::native::vectorized_elementwise_kernel<8, at::native::ConvertT",
+      "us": 4.14,
+      "calls": 2,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void at::native::index_elementwise_kernel<128, 4, at::native::gpu_inde",
+      "us": 3.43,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void flash::prepare_varlen_num_blocks_kernel<1, true>(int, int, int, i",
+      "us": 3.32,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void at::native::unrolled_elementwise_kernel<at::native::direct_copy_k",
+      "us": 3.31,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void at::native::elementwise_kernel<128, 4, at::native::gpu_kernel_imp",
+      "us": 3.3,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void at::native::vectorized_elementwise_kernel<4, at::native::CUDAFunc",
+      "us": 3.28,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void at::native::vectorized_elementwise_kernel<4, at::native::BUnaryFu",
+      "us": 1.9,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void sglang::store_kvcache_kernel<128l, 128l, 32u, true, long>(sglang:",
+      "us": 1.78,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void at::native::elementwise_kernel<128, 2, at::native::gpu_kernel_imp",
+      "us": 1.75,
+      "calls": 1,
+      "phase": "other"
+     }
+    ],
+    "phases_us": {
+     "routed experts": 2222.5,
+     "attention": 1653.7,
+     "dense GEMMs": 871.0,
+     "other": 241.1
+    }
+   }
+  },
+  {
+   "case": {
+    "load": "first turn",
+    "weight": 16,
+    "batch": 1,
+    "ctx": 0,
+    "layer": "full",
+    "q_len": 16384
+   },
+   "ours": {
+    "kernel_sum_us": 9169.3,
+    "gpu_busy_us": 9052.7,
+    "kernels": [
+     {
+      "kernel": "void (anonymous namespace)::moe_fused<256, 1>(unsigned ch...",
+      "us": 3755.4,
+      "calls": 2,
+      "phase": "routed experts"
+     },
+     {
+      "kernel": "nvjet_sm90_tst_256x128_64x4_1x2_h_ssched_bz_coopA_TNT",
+      "us": 2056.1,
+      "calls": 3,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "nvjet_sm90_tst_168x128_64x5_1x2_h_ssched_bz_TNN",
+      "us": 1318.4,
+      "calls": 1,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "void (anonymous namespace)::remat2_k<true>(float const*, ...",
+      "us": 458.4,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void cutlass::device_kernel<flash::enable_sm90_or_later<f...",
+      "us": 379.3,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "nvjet_sm90_tst_176x128_64x5_1x2_h_ssched_bz_TNN",
+      "us": 329.3,
+      "calls": 1,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "void (anonymous namespace)::nr3_k<false>(float const*, __...",
+      "us": 266.6,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "nvjet_sm90_tss_256x128_64x4_1x2_h_bz_coopA_TNT",
+      "us": 169.9,
+      "calls": 1,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "(anonymous namespace)::order2_k(float const*, long, int, ...",
+      "us": 115.0,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "(anonymous namespace)::normgather_k(uint4 const*, float c...",
+      "us": 111.1,
+      "calls": 2,
+      "phase": "other"
+     },
+     {
+      "kernel": "(anonymous namespace)::wsc_k(__nv_bfloat16 const*, __nv_b...",
+      "us": 100.4,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "(anonymous namespace)::route_k(float const*, float const*...",
+      "us": 71.8,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "4 smaller kernels not listed by the profile",
+      "us": 37.6,
+      "calls": 4,
+      "phase": "other"
+     }
+    ],
+    "phases_us": {
+     "routed experts": 3755.4,
+     "attention": 379.3,
+     "dense GEMMs": 3873.7,
+     "other": 1160.9
+    }
+   },
+   "sglang": {
+    "kernel_sum_us": 19098.31,
+    "kernels": [
+     {
+      "kernel": "void sglang::device::marlin_moe::Marlin<__nv_bfloat16, 562949953487106",
+      "us": 12352.74,
+      "calls": 2,
+      "phase": "routed experts"
+     },
+     {
+      "kernel": "nvjet_sm90_tst_192x192_64x4_2x1_v_bz_coopB_TNN",
+      "us": 2525.25,
+      "calls": 3,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "nvjet_sm90_tst_320x128_64x3_1x2_h_bz_coopB_TNT",
+      "us": 1482.36,
+      "calls": 1,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "void cutlass::device_kernel<flash::enable_sm90_or_later<flash::FlashAt",
+      "us": 907.18,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void sglang::muse_spark_norm_residual_kernel<8192l, 512, true, false, ",
+      "us": 401.29,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void sglang::muse_spark_norm_residual_kernel<8192l, 512, true, false, ",
+      "us": 397.87,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void sglang::act_and_mul_kernel<__nv_bfloat16, (sglang::ActivationKind",
+      "us": 300.84,
+      "calls": 1,
+      "phase": "routed experts"
+     },
+     {
+      "kernel": "nvjet_sm90_tss_128x256_64x4_2x1_v_bz_coopA_NNN",
+      "us": 286.71,
+      "calls": 2,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "_post_expert_norm_weighted_sum_kernel",
+      "us": 129.91,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void count_and_sort_expert_tokens_kernel<int>(int const*, int*, int*, ",
+      "us": 82.73,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void at::native::(anonymous namespace)::vectorized_layer_norm_kernel<c",
+      "us": 80.13,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "_qk_rms_norm_fwd_kernel",
+      "us": 30.67,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void moe_align_block_size_kernel<int>(int const*, int*, int*, int*, in",
+      "us": 27.39,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void sglang::norm_gate_kernel<__nv_bfloat16, 64l, 16, 4, true, false, ",
+      "us": 24.07,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void sglang::muse_spark::routing_kernel<sglang::muse_spark::RoutingTra",
+      "us": 17.34,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void at::native::vectorized_elementwise_kernel<8, at::native::ConvertT",
+      "us": 16.13,
+      "calls": 2,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void at::native::vectorized_elementwise_kernel<4, at::native::CUDAFunc",
+      "us": 10.86,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void at::native::elementwise_kernel<128, 4, at::native::gpu_kernel_imp",
+      "us": 7.35,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void at::native::unrolled_elementwise_kernel<at::native::direct_copy_k",
+      "us": 3.7,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void at::native::index_elementwise_kernel<128, 4, at::native::gpu_inde",
+      "us": 3.63,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void sglang::store_kvcache_kernel<128l, 128l, 32u, true, long>(sglang:",
+      "us": 3.59,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void flash::prepare_varlen_num_blocks_kernel<1, true>(int, int, int, i",
+      "us": 3.34,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void at::native::elementwise_kernel<128, 2, at::native::gpu_kernel_imp",
+      "us": 1.83,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void at::native::vectorized_elementwise_kernel<4, at::native::BUnaryFu",
+      "us": 1.4,
+      "calls": 1,
+      "phase": "other"
+     }
+    ],
+    "phases_us": {
+     "routed experts": 12653.6,
+     "attention": 992.3,
+     "dense GEMMs": 4294.3,
+     "other": 1158.1
+    }
+   }
+  },
+  {
+   "case": {
+    "load": "first turn",
+    "weight": 138,
+    "batch": 1,
+    "ctx": 32768,
+    "layer": "sliding",
+    "q_len": 16384
+   },
+   "ours": {
+    "kernel_sum_us": 8744.8,
+    "gpu_busy_us": 8657.3,
+    "kernels": [
+     {
+      "kernel": "void (anonymous namespace)::moe_fused<256, 1>(unsigned ch...",
+      "us": 3592.4,
+      "calls": 2,
+      "phase": "routed experts"
+     },
+     {
+      "kernel": "nvjet_sm90_tst_256x128_64x4_1x2_h_ssched_bz_coopA_TNT",
+      "us": 2057.7,
+      "calls": 3,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "nvjet_sm90_tst_168x128_64x5_1x2_h_ssched_bz_TNN",
+      "us": 1305.9,
+      "calls": 1,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "void (anonymous namespace)::remat2_k<true>(float const*, ...",
+      "us": 459.4,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "nvjet_sm90_tst_176x128_64x5_1x2_h_ssched_bz_TNN",
+      "us": 328.3,
+      "calls": 1,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "void (anonymous namespace)::nr3_k<false>(float const*, __...",
+      "us": 267.7,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "nvjet_sm90_tss_256x128_64x4_1x2_h_bz_coopA_TNT",
+      "us": 169.0,
+      "calls": 1,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "sl_attn_k(CUtensorMap_st, CUtensorMap_st, CUtensorMap_st,...",
+      "us": 150.3,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "(anonymous namespace)::order2_k(float const*, long, int, ...",
+      "us": 112.1,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "(anonymous namespace)::normgather_k(uint4 const*, float c...",
+      "us": 108.1,
+      "calls": 2,
+      "phase": "other"
+     },
+     {
+      "kernel": "(anonymous namespace)::wsc_k(__nv_bfloat16 const*, __nv_b...",
+      "us": 97.6,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "(anonymous namespace)::route_k(float const*, float const*...",
+      "us": 69.7,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "3 smaller kernels not listed by the profile",
+      "us": 26.6,
+      "calls": 3,
+      "phase": "other"
+     }
+    ],
+    "phases_us": {
+     "routed experts": 3592.4,
+     "attention": 150.3,
+     "dense GEMMs": 3860.9,
+     "other": 1141.2
+    }
+   },
+   "sglang": {
+    "kernel_sum_us": 16728.51,
+    "kernels": [
+     {
+      "kernel": "void sglang::device::marlin_moe::Marlin<__nv_bfloat16, 562949953487106",
+      "us": 10598.92,
+      "calls": 2,
+      "phase": "routed experts"
+     },
+     {
+      "kernel": "nvjet_sm90_tst_192x192_64x4_2x1_v_bz_coopB_TNN",
+      "us": 2526.11,
+      "calls": 3,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "nvjet_sm90_tst_320x128_64x3_1x2_h_bz_coopB_TNT",
+      "us": 1483.81,
+      "calls": 1,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "void sglang::muse_spark_norm_residual_kernel<8192l, 512, true, false, ",
+      "us": 401.73,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void sglang::muse_spark_norm_residual_kernel<8192l, 512, true, false, ",
+      "us": 397.25,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void cutlass::device_kernel<flash::enable_sm90_or_later<flash::FlashAt",
+      "us": 302.9,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "nvjet_sm90_tss_128x256_64x4_2x1_v_bz_coopA_NNN",
+      "us": 289.41,
+      "calls": 2,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "void sglang::act_and_mul_kernel<__nv_bfloat16, (sglang::ActivationKind",
+      "us": 283.65,
+      "calls": 1,
+      "phase": "routed experts"
+     },
+     {
+      "kernel": "_post_expert_norm_weighted_sum_kernel",
+      "us": 118.56,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void count_and_sort_expert_tokens_kernel<int>(int const*, int*, int*, ",
+      "us": 83.89,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void at::native::(anonymous namespace)::vectorized_layer_norm_kernel<c",
+      "us": 79.55,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "_qk_rms_norm_fwd_kernel",
+      "us": 43.02,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void moe_align_block_size_kernel<int>(int const*, int*, int*, int*, in",
+      "us": 27.31,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void sglang::norm_gate_kernel<__nv_bfloat16, 64l, 16, 4, true, false, ",
+      "us": 24.68,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void sglang::muse_spark::routing_kernel<sglang::muse_spark::RoutingTra",
+      "us": 17.19,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void at::native::vectorized_elementwise_kernel<8, at::native::ConvertT",
+      "us": 16.21,
+      "calls": 2,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void at::native::vectorized_elementwise_kernel<4, at::native::CUDAFunc",
+      "us": 10.99,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void at::native::elementwise_kernel<128, 4, at::native::gpu_kernel_imp",
+      "us": 7.04,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void at::native::unrolled_elementwise_kernel<at::native::direct_copy_k",
+      "us": 3.73,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void at::native::index_elementwise_kernel<128, 4, at::native::gpu_inde",
+      "us": 3.6,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void sglang::store_kvcache_kernel<128l, 128l, 32u, true, long>(sglang:",
+      "us": 3.56,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void flash::prepare_varlen_num_blocks_kernel<1, false>(int, int, int, ",
+      "us": 2.12,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void at::native::elementwise_kernel<128, 2, at::native::gpu_kernel_imp",
+      "us": 1.89,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void at::native::vectorized_elementwise_kernel<4, at::native::BUnaryFu",
+      "us": 1.38,
+      "calls": 1,
+      "phase": "other"
+     }
+    ],
+    "phases_us": {
+     "routed experts": 10882.6,
+     "attention": 399.5,
+     "dense GEMMs": 4299.3,
+     "other": 1147.1
+    }
+   }
+  },
+  {
+   "case": {
+    "load": "first turn",
+    "weight": 16,
+    "batch": 1,
+    "ctx": 32768,
+    "layer": "full",
+    "q_len": 16384
+   },
+   "ours": {
+    "kernel_sum_us": 9971.2,
+    "gpu_busy_us": 9868.0,
+    "kernels": [
+     {
+      "kernel": "void (anonymous namespace)::moe_fused<256, 1>(unsigned ch...",
+      "us": 3350.1,
+      "calls": 2,
+      "phase": "routed experts"
+     },
+     {
+      "kernel": "nvjet_sm90_tst_256x128_64x4_1x2_h_ssched_bz_coopA_TNT",
+      "us": 2062.0,
+      "calls": 3,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "void cutlass::device_kernel<flash::enable_sm90_or_later<f...",
+      "us": 1570.3,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "nvjet_sm90_tst_168x128_64x5_1x2_h_ssched_bz_TNN",
+      "us": 1309.6,
+      "calls": 1,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "void (anonymous namespace)::remat2_k<true>(float const*, ...",
+      "us": 458.4,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "nvjet_sm90_tst_176x128_64x5_1x2_h_ssched_bz_TNN",
+      "us": 329.6,
+      "calls": 1,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "void (anonymous namespace)::nr3_k<false>(float const*, __...",
+      "us": 268.2,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "nvjet_sm90_tss_256x128_64x4_1x2_h_bz_coopA_TNT",
+      "us": 171.6,
+      "calls": 1,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "(anonymous namespace)::order2_k(float const*, long, int, ...",
+      "us": 112.3,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "(anonymous namespace)::normgather_k(uint4 const*, float c...",
+      "us": 103.2,
+      "calls": 2,
+      "phase": "other"
+     },
+     {
+      "kernel": "(anonymous namespace)::wsc_k(__nv_bfloat16 const*, __nv_b...",
+      "us": 97.5,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "(anonymous namespace)::route_k(float const*, float const*...",
+      "us": 70.5,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "5 smaller kernels not listed by the profile",
+      "us": 67.9,
+      "calls": 5,
+      "phase": "other"
+     }
+    ],
+    "phases_us": {
+     "routed experts": 3350.1,
+     "attention": 1570.3,
+     "dense GEMMs": 3872.8,
+     "other": 1178.0
+    }
+   },
+   "sglang": {
+    "kernel_sum_us": 22014.41,
+    "kernels": [
+     {
+      "kernel": "void sglang::device::marlin_moe::Marlin<__nv_bfloat16, 562949953487106",
+      "us": 11702.73,
+      "calls": 2,
+      "phase": "routed experts"
+     },
+     {
+      "kernel": "void cutlass::device_kernel<flash::enable_sm90_or_later<flash::FlashAt",
+      "us": 4483.75,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "nvjet_sm90_tst_192x192_64x4_2x1_v_bz_coopB_TNN",
+      "us": 2524.45,
+      "calls": 3,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "nvjet_sm90_tst_320x128_64x3_1x2_h_bz_coopB_TNT",
+      "us": 1486.32,
+      "calls": 1,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "void sglang::muse_spark_norm_residual_kernel<8192l, 512, true, false, ",
+      "us": 401.37,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void sglang::muse_spark_norm_residual_kernel<8192l, 512, true, false, ",
+      "us": 396.78,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void sglang::act_and_mul_kernel<__nv_bfloat16, (sglang::ActivationKind",
+      "us": 293.75,
+      "calls": 1,
+      "phase": "routed experts"
+     },
+     {
+      "kernel": "nvjet_sm90_tss_128x256_64x4_2x1_v_bz_coopA_NNN",
+      "us": 287.0,
+      "calls": 2,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "_post_expert_norm_weighted_sum_kernel",
+      "us": 124.99,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void count_and_sort_expert_tokens_kernel<int>(int const*, int*, int*, ",
+      "us": 83.37,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void at::native::(anonymous namespace)::vectorized_layer_norm_kernel<c",
+      "us": 79.54,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "_qk_rms_norm_fwd_kernel",
+      "us": 30.82,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void moe_align_block_size_kernel<int>(int const*, int*, int*, int*, in",
+      "us": 27.16,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void sglang::norm_gate_kernel<__nv_bfloat16, 64l, 16, 4, true, false, ",
+      "us": 23.51,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void sglang::muse_spark::routing_kernel<sglang::muse_spark::RoutingTra",
+      "us": 17.27,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void at::native::vectorized_elementwise_kernel<8, at::native::ConvertT",
+      "us": 16.07,
+      "calls": 2,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void at::native::vectorized_elementwise_kernel<4, at::native::CUDAFunc",
+      "us": 10.94,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void at::native::elementwise_kernel<128, 4, at::native::gpu_kernel_imp",
+      "us": 6.98,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void at::native::unrolled_elementwise_kernel<at::native::direct_copy_k",
+      "us": 3.78,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void at::native::index_elementwise_kernel<128, 4, at::native::gpu_inde",
+      "us": 3.72,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void sglang::store_kvcache_kernel<128l, 128l, 32u, true, long>(sglang:",
+      "us": 3.58,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void flash::prepare_varlen_num_blocks_kernel<1, true>(int, int, int, i",
+      "us": 3.21,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void at::native::elementwise_kernel<128, 2, at::native::gpu_kernel_imp",
+      "us": 1.88,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void at::native::vectorized_elementwise_kernel<4, at::native::BUnaryFu",
+      "us": 1.44,
+      "calls": 1,
+      "phase": "other"
+     }
+    ],
+    "phases_us": {
+     "routed experts": 11996.5,
+     "attention": 4567.9,
+     "dense GEMMs": 4297.8,
+     "other": 1152.2
+    }
+   }
+  },
+  {
+   "case": {
+    "load": "first turn",
+    "weight": 16,
+    "batch": 1,
+    "ctx": 65536,
+    "layer": "full",
+    "q_len": 16384
+   },
+   "ours": {
+    "kernel_sum_us": 11230.0,
+    "gpu_busy_us": null,
+    "kernels": [
+     {
+      "kernel": "void (anonymous namespace)::moe_fused<256, 1>(unsigned ch...",
+      "us": 3409.8,
+      "calls": 2,
+      "phase": "routed experts"
+     },
+     {
+      "kernel": "void cutlass::device_kernel<flash::enable_sm90_or_later<f...",
+      "us": 2769.7,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "nvjet_sm90_tst_256x128_64x4_1x2_h_ssched_bz_coopA_TNT",
+      "us": 2064.6,
+      "calls": 3,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "nvjet_sm90_tst_168x128_64x5_1x2_h_ssched_bz_TNN",
+      "us": 1301.4,
+      "calls": 1,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "void (anonymous namespace)::remat2_k<true>(float const*, ...",
+      "us": 464.4,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "nvjet_sm90_tst_176x128_64x5_1x2_h_ssched_bz_TNN",
+      "us": 329.8,
+      "calls": 1,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "void (anonymous namespace)::nr3_k<false>(float const*, __...",
+      "us": 268.7,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "nvjet_sm90_tss_256x128_64x4_1x2_h_bz_coopA_TNT",
+      "us": 170.3,
+      "calls": 1,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "(anonymous namespace)::order2_k(float const*, long, int, ...",
+      "us": 112.1,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "(anonymous namespace)::normgather_k(uint4 const*, float c...",
+      "us": 102.8,
+      "calls": 2,
+      "phase": "other"
+     },
+     {
+      "kernel": "(anonymous namespace)::wsc_k(__nv_bfloat16 const*, __nv_b...",
+      "us": 94.2,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "(anonymous namespace)::route_k(float const*, float const*...",
+      "us": 71.2,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "5 smaller kernels not listed by the profile",
+      "us": 71.0,
+      "calls": 5,
+      "phase": "other"
+     }
+    ],
+    "phases_us": {
+     "routed experts": 3409.8,
+     "attention": 2769.7,
+     "dense GEMMs": 3866.1,
+     "other": 1184.4
+    }
+   },
+   "sglang": {
+    "kernel_sum_us": 25279.87,
+    "kernels": [
+     {
+      "kernel": "void sglang::device::marlin_moe::Marlin<__nv_bfloat16, 562949953487106",
+      "us": 11348.64,
+      "calls": 2,
+      "phase": "routed experts"
+     },
+     {
+      "kernel": "void cutlass::device_kernel<flash::enable_sm90_or_later<flash::FlashAt",
+      "us": 8100.0,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "nvjet_sm90_tst_192x192_64x4_2x1_v_bz_coopB_TNN",
+      "us": 2527.33,
+      "calls": 3,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "nvjet_sm90_tst_320x128_64x3_1x2_h_bz_coopB_TNT",
+      "us": 1490.21,
+      "calls": 1,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "void sglang::muse_spark_norm_residual_kernel<8192l, 512, true, false, ",
+      "us": 401.87,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void sglang::muse_spark_norm_residual_kernel<8192l, 512, true, false, ",
+      "us": 396.96,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void sglang::act_and_mul_kernel<__nv_bfloat16, (sglang::ActivationKind",
+      "us": 290.21,
+      "calls": 1,
+      "phase": "routed experts"
+     },
+     {
+      "kernel": "nvjet_sm90_tss_128x256_64x4_2x1_v_bz_coopA_NNN",
+      "us": 288.32,
+      "calls": 2,
+      "phase": "dense GEMMs"
+     },
+     {
+      "kernel": "_post_expert_norm_weighted_sum_kernel",
+      "us": 122.86,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void count_and_sort_expert_tokens_kernel<int>(int const*, int*, int*, ",
+      "us": 83.78,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void at::native::(anonymous namespace)::vectorized_layer_norm_kernel<c",
+      "us": 79.7,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "_qk_rms_norm_fwd_kernel",
+      "us": 30.71,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void moe_align_block_size_kernel<int>(int const*, int*, int*, int*, in",
+      "us": 27.29,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void sglang::norm_gate_kernel<__nv_bfloat16, 64l, 16, 4, true, false, ",
+      "us": 23.11,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void sglang::muse_spark::routing_kernel<sglang::muse_spark::RoutingTra",
+      "us": 17.27,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void at::native::vectorized_elementwise_kernel<8, at::native::ConvertT",
+      "us": 16.31,
+      "calls": 2,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void at::native::vectorized_elementwise_kernel<4, at::native::CUDAFunc",
+      "us": 10.99,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void at::native::elementwise_kernel<128, 4, at::native::gpu_kernel_imp",
+      "us": 6.97,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void at::native::unrolled_elementwise_kernel<at::native::direct_copy_k",
+      "us": 3.79,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void sglang::store_kvcache_kernel<128l, 128l, 32u, true, long>(sglang:",
+      "us": 3.61,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void at::native::index_elementwise_kernel<128, 4, at::native::gpu_inde",
+      "us": 3.57,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void flash::prepare_varlen_num_blocks_kernel<1, true>(int, int, int, i",
+      "us": 3.08,
+      "calls": 1,
+      "phase": "attention"
+     },
+     {
+      "kernel": "void at::native::elementwise_kernel<128, 2, at::native::gpu_kernel_imp",
+      "us": 1.88,
+      "calls": 1,
+      "phase": "other"
+     },
+     {
+      "kernel": "void at::native::vectorized_elementwise_kernel<4, at::native::BUnaryFu",
+      "us": 1.4,
+      "calls": 1,
+      "phase": "other"
+     }
+    ],
+    "phases_us": {
+     "routed experts": 11638.9,
+     "attention": 8183.8,
+     "dense GEMMs": 4305.9,
+     "other": 1151.4
+    }
+   }
+  }
+ ]
+}

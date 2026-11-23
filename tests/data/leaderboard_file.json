@@ -1,0 +1,8 @@
+{
+ "about": "The file that produced our leaderboard row, recorded before its comments were removed and its docstrings rewritten for this repository.",
+ "sha256": "9ac94705434fcee2530e7d22e048cf373ae537791b695fae09e2ddd7ee53466c",
+ "code_token_sha256": "afa946b45454b6aa2120bc41cc82d643bb45b857473bf8514004797a2d3d93b2",
+ "python_tokens": 25417,
+ "cuda_strings": 15,
+ "c_tokens": 195809
+}

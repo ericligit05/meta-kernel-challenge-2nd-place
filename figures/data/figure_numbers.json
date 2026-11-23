@@ -1,0 +1,246 @@
+{
+ "median_run": {
+  "job_id": "09ce8d3608884bdd",
+  "score": 2.0875,
+  "all_scores_sorted": [
+   2.0418,
+   2.0547,
+   2.0582,
+   2.0658,
+   2.0668,
+   2.0787,
+   2.0801,
+   2.0825,
+   2.087,
+   2.0875,
+   2.0882,
+   2.0884,
+   2.09,
+   2.0901,
+   2.0951,
+   2.0976,
+   2.101,
+   2.1011,
+   2.1292
+  ]
+ },
+ "figure3": {
+  "phase_order": [
+   "routed experts",
+   "attention",
+   "dense GEMMs",
+   "other"
+  ],
+  "loads": [
+   {
+    "load": "turn 1",
+    "label": "Turn 1",
+    "speedup": 2.1638,
+    "sglang_ms": 69.66,
+    "ours_ms": 32.19,
+    "sglang_phase_pct_of_sglang": {
+     "routed experts": 57.92,
+     "attention": 12.39,
+     "dense GEMMs": 22.89,
+     "other": 6.8
+    },
+    "ours_phase_pct_of_sglang": {
+     "routed experts": 19.6,
+     "attention": 4.76,
+     "dense GEMMs": 16.64,
+     "other": 5.22
+    }
+   },
+   {
+    "load": "turn 4",
+    "label": "Turn 4",
+    "speedup": 2.0765,
+    "sglang_ms": 232.6,
+    "ours_ms": 112.01,
+    "sglang_phase_pct_of_sglang": {
+     "routed experts": 58.1,
+     "attention": 12.7,
+     "dense GEMMs": 22.84,
+     "other": 6.36
+    },
+    "ours_phase_pct_of_sglang": {
+     "routed experts": 18.25,
+     "attention": 4.48,
+     "dense GEMMs": 17.99,
+     "other": 7.43
+    }
+   },
+   {
+    "load": "first turn",
+    "label": "16K prompt",
+    "speedup": 2.0246,
+    "sglang_ms": 3384.14,
+    "ours_ms": 1671.51,
+    "sglang_phase_pct_of_sglang": {
+     "routed experts": 61.9,
+     "attention": 7.93,
+     "dense GEMMs": 23.82,
+     "other": 6.36
+    },
+    "ours_phase_pct_of_sglang": {
+     "routed experts": 19.36,
+     "attention": 2.83,
+     "dense GEMMs": 20.96,
+     "other": 6.24
+    }
+   }
+  ],
+  "waterfall": [
+   {
+    "switched": "routed experts",
+    "score": 1.6739
+   },
+   {
+    "switched": "attention",
+    "score": 1.8947
+   },
+   {
+    "switched": "dense GEMMs",
+    "score": 2.0779
+   },
+   {
+    "switched": "other",
+    "score": 2.0875
+   }
+  ]
+ },
+ "figure2": {
+  "shape": "turn 1, sliding layer, 753 tokens on an 80K context",
+  "summed_kernel_us": {
+   "sglang": {
+    "routed experts": 690.4,
+    "dense GEMMs": 276.0,
+    "other (attention included)": 129.9,
+    "total": 1096.3
+   },
+   "ours": {
+    "routed experts": 239.5,
+    "dense GEMMs": 206.5,
+    "other (attention included)": 80.0,
+    "total": 526.0
+   },
+   "ratio": {
+    "routed experts": 2.883,
+    "dense GEMMs": 1.337,
+    "other (attention included)": 1.624,
+    "total": 2.084
+   }
+  },
+  "ours_gpu_busy_us": 503.0,
+  "ours_pdl_overlap_us": 23.0,
+  "judged_median_us_over_19_runs": {
+   "sglang": 1058.0,
+   "ours": 496.0
+  },
+  "timeline": {
+   "kernels": [
+    {
+     "label": "qkv",
+     "start_us": 0.0,
+     "end_us": 38.99
+    },
+    {
+     "label": "RoPE",
+     "start_us": 38.84,
+     "end_us": 44.2
+    },
+    {
+     "label": "attention",
+     "start_us": 42.62,
+     "end_us": 58.37
+    },
+    {
+     "label": "o",
+     "start_us": 45.49,
+     "end_us": 77.38
+    },
+    {
+     "label": "norm",
+     "start_us": 77.31,
+     "end_us": 94.93
+    },
+    {
+     "label": "pooler + router",
+     "start_us": 94.85,
+     "end_us": 169.07
+    },
+    {
+     "label": "routing",
+     "start_us": 168.7,
+     "end_us": 177.15
+    },
+    {
+     "label": "routed experts",
+     "start_us": 173.66,
+     "end_us": 419.06
+    },
+    {
+     "label": "weighted sum",
+     "start_us": 402.54,
+     "end_us": 421.2
+    },
+    {
+     "label": "unpooler",
+     "start_us": 414.67,
+     "end_us": 484.74
+    },
+    {
+     "label": "norm",
+     "start_us": 484.01,
+     "end_us": 502.64
+    }
+   ],
+   "overlaps_us": [
+    [
+     38.84,
+     38.99
+    ],
+    [
+     42.62,
+     44.2
+    ],
+    [
+     45.49,
+     58.37
+    ],
+    [
+     77.31,
+     77.38
+    ],
+    [
+     94.85,
+     94.93
+    ],
+    [
+     168.7,
+     169.07
+    ],
+    [
+     173.66,
+     177.15
+    ],
+    [
+     402.54,
+     421.2
+    ],
+    [
+     484.01,
+     484.74
+    ]
+   ],
+   "span_us": 502.64,
+   "overlap_total_us": 38.0,
+   "replay_spans_us": [
+    505.19,
+    504.29,
+    500.99,
+    500.0
+   ]
+  }
+ }
+}
